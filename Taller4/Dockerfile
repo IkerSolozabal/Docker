@@ -1,0 +1,24 @@
+FROM python:3.7.3
+# Se instala uWSGI y todas las librerias que necesita la aplicacion
+COPY webapp/requirements.txt requirements.txt
+RUN pip install --upgrade pip
+RUN pip install uwsgi && pip install -r requirements.txt
+# Puerto HTTP por defecto para uWSGI
+ARG UWSGI_HTTP_PORT=8000
+ENV UWSGI_HTTP_PORT=$UWSGI_HTTP_PORT
+# Aplicacion por defecto para uWSGI
+ARG UWSGI_APP=webapp
+ENV UWSGI_APP=$UWSGI_APP
+# Se crea un usuario para arrancar uWSGI
+RUN useradd -ms /bin/bash admin
+USER admin
+# Se copia el contenido de la aplicacion
+COPY webapp /webapp
+# Se copia el fichero con la configuración de uWSGI
+COPY uwsgi.ini uwsgi.ini
+# Se establece el directorio de trabajo
+WORKDIR /webapp
+# Se crea un volume con el contenido de la aplicacion
+VOLUME /webapp
+# Se inicia uWSGI
+ENTRYPOINT ["uwsgi", "--ini", "/uwsgi.ini"]
